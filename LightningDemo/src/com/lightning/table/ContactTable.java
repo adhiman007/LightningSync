@@ -27,9 +27,8 @@ public class ContactTable extends LightningTable<Contact> {
 		contact.setGender(cursor.getString(cursor.getColumnIndex("gender")));
 		contact.setId(cursor.getString(cursor.getColumnIndex("id")));
 		contact.setName(cursor.getString(cursor.getColumnIndex("name")));
-		PhoneTable phoneDao = new PhoneTable();
-		Phone phone = phoneDao.getFilterList("id = '" + contact.getId() + "'")
-				.get(0);
+		PhoneTable phoneTable = new PhoneTable();
+		Phone phone = phoneTable.getFilterList("id = '" + contact.getId() + "'").get(0);
 		contact.setPhone(phone);
 		return contact;
 	}
