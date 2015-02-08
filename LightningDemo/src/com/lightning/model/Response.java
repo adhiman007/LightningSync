@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Response {
 	private List<Contact>	contacts;
-	private Phone			phone;
+//	private Phone			phone;
 
 	public List<Contact> getContacts() {
 		return contacts;
@@ -14,11 +14,11 @@ public class Response {
 		this.contacts = contacts;
 	}
 
-	public Phone getPhone() {
-		return phone;
-	}
-
-	public void setPhone(Phone phone) {
-		this.phone = phone;
-	}
+//	public Phone getPhone() {
+//		return phone;
+//	}
+//
+//	public void setPhone(Phone phone) {
+//		this.phone = phone;
+//	}
 }

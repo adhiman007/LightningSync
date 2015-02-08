@@ -18,7 +18,7 @@ public class PriodicSync extends LightningPriodicSync {
 	@Override
 	public List<LightningGetRequest<?>> getDirtyList() {
 		List<LightningGetRequest<?>> list = new ArrayList<LightningGetRequest<?>>();
-		list.add(new ContactsRequest().setPriodic(true));
+		list.add(new ResponseRequest().setPriodic(true));
 		return list;
 	}
 }

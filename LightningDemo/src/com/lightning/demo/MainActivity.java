@@ -19,8 +19,9 @@ import com.lightning.engine.RequestCallback;
 import com.lightning.model.Contact;
 import com.lightning.model.Phone;
 import com.lightning.model.Response;
-import com.lightning.sync.ContactsRequest;
+import com.lightning.sync.NewLightningGetRequest;
 import com.lightning.sync.PriodicSync;
+import com.lightning.sync.RequestUrl;
 import com.lightning.sync.ResponseRequest;
 import com.lightning.table.ContactTable;
 import com.lightning.table.PhoneTable;
@@ -98,11 +99,11 @@ public class MainActivity extends Activity implements PriodicCallback,
 	}
 
 	private void requestType1() {
-		new ContactsRequest().setCallback(new RequestCallback<List<Contact>>() {
-
+		new NewLightningGetRequest<Response>().setCallback(new RequestCallback<Response>() {
+			
 			@Override
-			public void onResponse(List<Contact> contacts) {
-				if (contacts == null)
+			public void onResponse(Response response) {
+				if (response == null)
 					return;
 				ContactTable contactTable = new ContactTable();
 				PhoneTable phoneTable = new PhoneTable();
@@ -110,6 +111,7 @@ public class MainActivity extends Activity implements PriodicCallback,
 				phoneTable.setDebug(true);
 				contactTable.clearTable();
 				phoneTable.clearTable();
+				List<Contact> contacts = response.getContacts();
 				for (Contact contact : contacts) {
 					contactTable.insert(contact);
 					Phone phone = contact.getPhone();
@@ -118,12 +120,12 @@ public class MainActivity extends Activity implements PriodicCallback,
 				}
 				listContacts.setAdapter(new ContactsAdapter(MainActivity.this, contactTable.getList()));
 			}
-
+			
 			@Override
 			public void onError(Exception e) {
-				showToast(e.getMessage());
+				showToast(e.getMessage());				
 			}
-		}).get(getApplicationContext());
+		}).get(getApplicationContext(), RequestUrl.URL, Response.class);
 	}
 
 	private void requestType2() {
