@@ -100,11 +100,13 @@ public class MainActivity extends Activity implements PriodicCallback,
 
 	private void requestType1() {
 		new NewLightningGetRequest<Response>().setCallback(new RequestCallback<Response>() {
-			
+
 			@Override
-			public void onResponse(Response response) {
-				if (response == null)
+			public void onResponse(Response response, Exception e) {
+				if (response == null) {
+					showToast(e.getMessage());
 					return;
+				}
 				ContactTable contactTable = new ContactTable();
 				PhoneTable phoneTable = new PhoneTable();
 				contactTable.setDebug(true);
@@ -119,12 +121,7 @@ public class MainActivity extends Activity implements PriodicCallback,
 					phoneTable.insert(phone);
 				}
 				listContacts.setAdapter(new ContactsAdapter(MainActivity.this, contactTable.getList()));
-			}
-			
-			@Override
-			public void onError(Exception e) {
-				showToast(e.getMessage());				
-			}
+			}			
 		}).get(getApplicationContext(), RequestUrl.URL, Response.class);
 	}
 
@@ -132,9 +129,11 @@ public class MainActivity extends Activity implements PriodicCallback,
 		new ResponseRequest().setCallback(new RequestCallback<Response>() {
 
 			@Override
-			public void onResponse(Response response) {
-				if (response == null)
+			public void onResponse(Response response, Exception e) {
+				if (response == null) {
+					showToast(e.getMessage());
 					return;
+				}
 				ContactTable contactTable = new ContactTable();
 				PhoneTable phoneTable = new PhoneTable();
 				contactTable.setDebug(true);
@@ -148,12 +147,7 @@ public class MainActivity extends Activity implements PriodicCallback,
 					phone.setId(contact.getId());
 					phoneTable.insert(phone);
 				}
-				listContacts.setAdapter(new ContactsAdapter(MainActivity.this, contactTable.getList()));
-			}
-
-			@Override
-			public void onError(Exception e) {
-				showToast(e.getMessage());
+				listContacts.setAdapter(new ContactsAdapter(MainActivity.this, contactTable.getList()));				
 			}
 		}).get(getApplicationContext());
 	}

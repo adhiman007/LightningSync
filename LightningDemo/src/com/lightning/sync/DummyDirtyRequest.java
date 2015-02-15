@@ -5,7 +5,6 @@ import java.util.List;
 import org.json.JSONObject;
 
 import com.lightning.model.Contact;
-import com.lightning.sync.LightningJSONDirtySync;
 import com.lightning.table.ContactTable;
 import com.lightning.table.LightningTable;
 
@@ -16,25 +15,25 @@ public class DummyDirtyRequest extends LightningJSONDirtySync<Contact> {
 	}
 
 	@Override
-	protected List<Contact> getDirtyList(LightningTable<Contact> table) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	protected String getServiceUrl() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	protected Contact parseResponse(String response, LightningTable<Contact> table) {
+	protected void populateParams(Contact model, JSONObject params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected List<Contact> getDirtyList(LightningTable<Contact> table) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	protected void populateParams(Contact table, JSONObject params) {
+	protected void onResponse(String response) {
 		// TODO Auto-generated method stub
 		
 	}
