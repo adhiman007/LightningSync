@@ -2,7 +2,7 @@
 
 LightningSync provides you an ease in managing your:
 - Database
-- Services
+- REST APIs
 
 ## Using LightningSync
 Copy LightningSync and GSON jar into your ``libs`` folder
@@ -53,6 +53,14 @@ public class User extends LightningModel {
 	}
 }
 ```
+Here ``@Column(name = "userId", type = "INTEGER", order = 1)``
+<br>
+determines that we are creating a column **userId** with data type **INTEGER**
+<br>
+**Note:** Column name and variable name must be same inorder to work properly.
+
+The name of the table is passed in the constructor ``super("user");`` so that it can be recognised by ``LightningTable``
+
 #### Creating Table for corresponding Model
 ```sh
 public class UserTable extends LightningTable<User> {
@@ -76,6 +84,10 @@ public class UserTable extends LightningTable<User> {
 	}
 }
 ```
+- Inside constructor an instance of the model class must be passed ``super(new User());``
+- Inside ``getDBHelper()`` an instance of DatabaseHeler class must be passed ``DatabaseHelper extends SQLiteOpenHelper``
+- Inside ``populate(Cursor cursor)`` we need to map the cursor values with our model
+
 #### Creating Database Helper
 ```sh
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -95,6 +107,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	}
 }
+```
+Here the create table query is replaced with the createTable method of LightningHelper
+<br>
+from
+```sh
+String userTable = "CREATE TABLE user (userId INTEGER, userName TEXT, password TEXT)";
+db.execSQL(userTable);
+```
+to
+<br>
+```sh
+LightningHelper.createTable(db, new User());
 ```
 #### Insertion
 ```sh
@@ -129,11 +153,10 @@ UserTable userTable = new UserTable();
 userTable.clearTable();
 ```
 
-## Service
-#### Get Service
+## Rest APIs
+#### Get API
 To fetch the records of users
 ```sh
-// Required for GSON
 public class Response {
 	private List<User> users;
 	
@@ -145,7 +168,10 @@ public class Response {
 		this.users = users;
 	}
 }
-
+```
+We have created a Response model class that will return us the list users (base on GSON)
+<br>
+```sh
 public class ResponseRequest extends LightningGetRequest<Response> {
 
 	public ResponseRequest() {
@@ -166,11 +192,19 @@ public class ResponseRequest extends LightningGetRequest<Response> {
 		}
 	}
 }
+```
+- Inside constructor we are passing the class name as we are using GSON internally for parsing ``super(Response.class);`` 
+- Inside ``onResponse`` we will get the response prepopulate using GSON and is ready for insertion
+<br>
+<br>
 
-// Hit Service if response is handled inside 'ResponseRequest'
+To hit the API from your activity or fragment (if you want to handle the response inside ResponseRequest)
+```sh
 new ResponseRequest().get(getApplicationContext());
+```
 
-// Hit service if response needs to be handled inside Activity or Fragment
+To hit the API from your activity or fragment (if you want to handle the response inside you same activity or class)
+```sh
 new ResponseRequest().setCallback(new RequestCallback<Response>() {
 			
 	@Override
@@ -183,7 +217,7 @@ new ResponseRequest().setCallback(new RequestCallback<Response>() {
 	}
 }).get(getApplicationContext());
 ```
-#### Post Service
+#### Post API
 ```sh
 public class UserRequest extends LightningJSONPostRequest<User> {
 
@@ -207,14 +241,23 @@ public class UserRequest extends LightningJSONPostRequest<User> {
 		}
 	}
 }
+```
+- Map you params inside ``populateParams``
+- Response will be returned in String format that can be parsed accordingly
+<br>
+<br>
 
+Hitting of the API will remain same as of Get API only need to pass the model inside the ``post()``
+```sh
 User user = new User();
 user.setUserName("admin");
 user.setPassword("1234");
 
 // Hit Service if response is handled inside 'UserRequest'
 new UserRequest().post(getApplicationContext(), user);
-
+```
+Here we are fetching the response in the same class where we are hitting the API
+```sh
 User user = new User();
 user.setUserName("admin");
 user.setPassword("1234");
@@ -241,6 +284,8 @@ public class LightningApp extends Application {
 	}
 }
 ```
-
+**Note:** However ``LightningHelper.init()`` can also be done in your launching ``Activity`` however ``Application`` is more preffered.
+<br>
+<br>
 ## Additional Libraries
 - GSON 2.2.4
