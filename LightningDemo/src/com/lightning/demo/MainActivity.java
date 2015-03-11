@@ -90,8 +90,8 @@ public class MainActivity extends Activity implements PriodicCallback,
 			
 			@Override
 			public void run() {
-				ContactTable contactParser = new ContactTable();
-				List<Contact> contacts = contactParser.getList();
+				ContactTable contactTable = new ContactTable();
+				List<Contact> contacts = contactTable.getList();
 				listContacts.setAdapter(new ContactsAdapter(MainActivity.this, contacts));
 				showToast("Total: "+contacts.size());
 			}
