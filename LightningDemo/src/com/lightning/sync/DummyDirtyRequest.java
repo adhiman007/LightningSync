@@ -5,13 +5,12 @@ import java.util.List;
 import org.json.JSONObject;
 
 import com.lightning.model.Contact;
-import com.lightning.table.ContactTable;
 import com.lightning.table.LightningTable;
 
 public class DummyDirtyRequest extends LightningJSONDirtySync<Contact> {
 
 	public DummyDirtyRequest() {
-		super(new ContactTable());
+		super(new LightningTable<Contact>(Contact.class));
 	}
 
 	@Override
@@ -27,7 +26,7 @@ public class DummyDirtyRequest extends LightningJSONDirtySync<Contact> {
 	}
 
 	@Override
-	protected List<Contact> getDirtyList(LightningTable<Contact> table) {
+	protected List<Contact> getDirtyList(LightningTable table) {
 		// TODO Auto-generated method stub
 		return null;
 	}

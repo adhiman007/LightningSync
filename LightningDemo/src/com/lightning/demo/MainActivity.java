@@ -14,39 +14,41 @@ import android.widget.ToggleButton;
 
 import com.lightning.LightningHelper;
 import com.lightning.adapter.ContactsAdapter;
+import com.lightning.db.DatabaseHelper;
 import com.lightning.engine.PriodicCallback;
 import com.lightning.engine.RequestCallback;
 import com.lightning.model.Contact;
 import com.lightning.model.Phone;
 import com.lightning.model.Response;
-import com.lightning.sync.NewLightningGetRequest;
 import com.lightning.sync.PriodicSync;
-import com.lightning.sync.RequestUrl;
 import com.lightning.sync.ResponseRequest;
-import com.lightning.table.ContactTable;
-import com.lightning.table.PhoneTable;
+import com.lightning.table.LightningTable;
 
 public class MainActivity extends Activity implements PriodicCallback,
 		OnClickListener, OnCheckedChangeListener {
 	private ListView	listContacts;
 	private PriodicSync	priodicSync;
+	LightningTable<Contact> contactTable;
+	LightningTable<Phone>   phoneTable;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		LightningHelper.init(getApplicationContext());
+		LightningHelper.init(getApplicationContext(), new DatabaseHelper(getApplicationContext()));
 
 		initUI();
 
 		priodicSync = PriodicSync.getInstance();
 		priodicSync.setCallback(this);
+		
+		contactTable = new LightningTable<Contact>(Contact.class);
+		phoneTable = new LightningTable<Phone>(Phone.class);      
 	}
 
 	private void initUI() {
 		listContacts = (ListView)findViewById(R.id.list_contacts);
-		findViewById(R.id.btn_request1).setOnClickListener(this);
-		findViewById(R.id.btn_request2).setOnClickListener(this);
+		findViewById(R.id.btn_request).setOnClickListener(this);
 		((ToggleButton) findViewById(R.id.tbtn_sync))
 				.setOnCheckedChangeListener(this);
 	}
@@ -54,11 +56,8 @@ public class MainActivity extends Activity implements PriodicCallback,
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
-		case R.id.btn_request1:
-			requestType1();
-			break;
-		case R.id.btn_request2:
-			requestType2();
+		case R.id.btn_request:
+			requestType();
 			break;
 		}
 	}
@@ -90,42 +89,18 @@ public class MainActivity extends Activity implements PriodicCallback,
 			
 			@Override
 			public void run() {
-				ContactTable contactTable = new ContactTable();
 				List<Contact> contacts = contactTable.getList();
+				for(Contact contact : contacts) {
+					Phone phone = phoneTable.getList("id = '"+contact.getId()+"'").get(0);
+					contact.setPhone(phone);
+				}
 				listContacts.setAdapter(new ContactsAdapter(MainActivity.this, contacts));
 				showToast("Total: "+contacts.size());
 			}
 		});
 	}
 
-	private void requestType1() {
-		new NewLightningGetRequest<Response>().setCallback(new RequestCallback<Response>() {
-
-			@Override
-			public void onResponse(Response response, Exception e) {
-				if (response == null) {
-					showToast(e.getMessage());
-					return;
-				}
-				ContactTable contactTable = new ContactTable();
-				PhoneTable phoneTable = new PhoneTable();
-				contactTable.setDebug(true);
-				phoneTable.setDebug(true);
-				contactTable.clearTable();
-				phoneTable.clearTable();
-				List<Contact> contacts = response.getContacts();
-				for (Contact contact : contacts) {
-					contactTable.insert(contact);
-					Phone phone = contact.getPhone();
-					phone.setId(contact.getId());
-					phoneTable.insert(phone);
-				}
-				listContacts.setAdapter(new ContactsAdapter(MainActivity.this, contactTable.getList()));
-			}			
-		}).get(getApplicationContext(), RequestUrl.URL, Response.class);
-	}
-
-	private void requestType2() {
+	private void requestType() {
 		new ResponseRequest().setCallback(new RequestCallback<Response>() {
 
 			@Override
@@ -134,8 +109,6 @@ public class MainActivity extends Activity implements PriodicCallback,
 					showToast(e.getMessage());
 					return;
 				}
-				ContactTable contactTable = new ContactTable();
-				PhoneTable phoneTable = new PhoneTable();
 				contactTable.setDebug(true);
 				phoneTable.setDebug(true);
 				contactTable.clearTable();
@@ -147,9 +120,14 @@ public class MainActivity extends Activity implements PriodicCallback,
 					phone.setId(contact.getId());
 					phoneTable.insert(phone);
 				}
-				listContacts.setAdapter(new ContactsAdapter(MainActivity.this, contactTable.getList()));				
+				List<Contact> list = contactTable.getList();
+				for(Contact contact : list) {
+					Phone phone = phoneTable.getList("id = '"+contact.getId()+"'").get(0);
+					contact.setPhone(phone);
+				}
+				listContacts.setAdapter(new ContactsAdapter(MainActivity.this, list));				
 			}
-		}).get(getApplicationContext());
+		}).get(this);
 	}
 	
 	private void showToast(final String message) {
@@ -161,5 +139,5 @@ public class MainActivity extends Activity implements PriodicCallback,
 						Toast.LENGTH_SHORT).show();
 			}
 		});
-	}
+	}	
 }

@@ -5,8 +5,7 @@ import java.util.List;
 import com.lightning.model.Contact;
 import com.lightning.model.Phone;
 import com.lightning.model.Response;
-import com.lightning.table.ContactTable;
-import com.lightning.table.PhoneTable;
+import com.lightning.table.LightningTable;
 
 public class ResponseRequest extends LightningGetRequest<Response> {
 
@@ -22,8 +21,8 @@ public class ResponseRequest extends LightningGetRequest<Response> {
 	@Override
 	protected void onResponse(Response response) {
 		if(isPriodic()) {
-			ContactTable contactTable = new ContactTable();
-			PhoneTable phoneTable = new PhoneTable();
+			LightningTable<Contact> contactTable = new LightningTable<Contact>(Contact.class);
+			LightningTable<Phone> phoneTable = new LightningTable<Phone>(Phone.class);
 			List<Contact> contacts = response.getContacts();
 			for(Contact contact : contacts) {
 				contactTable.insert(contact);
