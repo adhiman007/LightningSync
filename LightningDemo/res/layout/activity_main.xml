@@ -3,36 +3,79 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:padding="5dp"
     tools:context=".MainActivity" >
-    
-    <ListView
-        android:id="@+id/list_contacts"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight=".8" />
-    
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight=".12"
-        android:gravity="center_vertical"
-        android:orientation="horizontal" >
-        
+        android:layout_weight=".5"
+        android:orientation="vertical" >
+
+        <EditText
+            android:id="@+id/edit_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/name" />
+
+        <EditText
+            android:id="@+id/edit_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/email"
+            android:inputType="textEmailAddress" />
+
+        <EditText
+            android:id="@+id/edit_where"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/where"
+            android:inputType="text" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <Button
+                android:id="@+id/btn_insert"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/insert" />
+
+            <Button
+                android:id="@+id/btn_update"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/update" />
+
+            <Button
+                android:id="@+id/btn_delete"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/delete" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_fetch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/get_users" />
+
         <Button
             android:id="@+id/btn_request"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Get Request"
-            android:layout_weight="1" />
-        
-        <ToggleButton
-            android:id="@+id/tbtn_sync"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textOn="Sync On"
-            android:textOff="Sync Off" />
-        
+            android:text="@string/get_request" />
     </LinearLayout>
+
+    <ListView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight=".4" />
 
 </LinearLayout>

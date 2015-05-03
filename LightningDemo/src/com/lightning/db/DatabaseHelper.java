@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.lightning.LightningHelper;
 import com.lightning.model.Contact;
 import com.lightning.model.Phone;
+import com.lightning.model.User;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "lightning.db";
@@ -19,6 +20,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	public void onCreate(SQLiteDatabase db) {
 		LightningHelper.createTable(db, new Contact());
 		LightningHelper.createTable(db, new Phone());
+		LightningHelper.createTable(db, new User());
 	}
 
 	@Override

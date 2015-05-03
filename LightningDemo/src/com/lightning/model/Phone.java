@@ -3,7 +3,6 @@ package com.lightning.model;
 
 
 public class Phone extends LightningModel {
-	private static final long	serialVersionUID	= -6532470055812738346L;
 
 	@Column(name = "id", type = "TEXT", order = 1)
 	private String	id;

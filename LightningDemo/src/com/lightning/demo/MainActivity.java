@@ -3,141 +3,134 @@ package com.lightning.demo;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.lightning.LightningHelper;
 import com.lightning.adapter.ContactsAdapter;
+import com.lightning.adapter.UserAdapter;
 import com.lightning.db.DatabaseHelper;
-import com.lightning.engine.PriodicCallback;
-import com.lightning.engine.RequestCallback;
 import com.lightning.model.Contact;
 import com.lightning.model.Phone;
-import com.lightning.model.Response;
-import com.lightning.sync.PriodicSync;
-import com.lightning.sync.ResponseRequest;
+import com.lightning.model.User;
+import com.lightning.presenter.MainPresenter;
 import com.lightning.table.LightningTable;
+import com.lightning.view.MainView;
 
-public class MainActivity extends Activity implements PriodicCallback,
-		OnClickListener, OnCheckedChangeListener {
-	private ListView	listContacts;
-	private PriodicSync	priodicSync;
-	LightningTable<Contact> contactTable;
-	LightningTable<Phone>   phoneTable;
+public class MainActivity extends Activity implements OnClickListener, MainView {
+	private EditText editName;
+	private EditText editEmail;
+	private EditText editWhere;
+	private ListView list;
+	private LightningTable<Contact> contactTable;
+	private LightningTable<Phone> phoneTable;
+	private MainPresenter presenter;
+	private ProgressDialog dialog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
 		LightningHelper.init(getApplicationContext(), new DatabaseHelper(getApplicationContext()));
 
-		initUI();
-
-		priodicSync = PriodicSync.getInstance();
-		priodicSync.setCallback(this);
+		editName = (EditText)findViewById(R.id.edit_name);
+		editEmail = (EditText)findViewById(R.id.edit_email);
+		editWhere = (EditText)findViewById(R.id.edit_where);
+		list = (ListView) findViewById(R.id.list);
+		
+		findViewById(R.id.btn_insert).setOnClickListener(this);
+		findViewById(R.id.btn_update).setOnClickListener(this);
+		findViewById(R.id.btn_delete).setOnClickListener(this);
+		findViewById(R.id.btn_fetch).setOnClickListener(this);
+		findViewById(R.id.btn_request).setOnClickListener(this);
 		
 		contactTable = new LightningTable<Contact>(Contact.class);
-		phoneTable = new LightningTable<Phone>(Phone.class);      
-	}
-
-	private void initUI() {
-		listContacts = (ListView)findViewById(R.id.list_contacts);
-		findViewById(R.id.btn_request).setOnClickListener(this);
-		((ToggleButton) findViewById(R.id.tbtn_sync))
-				.setOnCheckedChangeListener(this);
+		phoneTable = new LightningTable<Phone>(Phone.class);
+		contactTable.setDebug(true);
+		phoneTable.setDebug(true);
+		dialog = new ProgressDialog(this);
+		dialog.setMessage("Please Wait...");
+		presenter = new com.lightning.implement.MainPresenter(this);
 	}
 
 	@Override
 	public void onClick(View v) {
+		User user = new User();
 		switch (v.getId()) {
+		case R.id.btn_insert:
+			user.setName(editName.getText().toString());
+			user.setEmail(editEmail.getText().toString());
+			presenter.insertUser(user);
+			break;
+		case R.id.btn_update:
+			user.setName(editName.getText().toString());
+			user.setEmail(editEmail.getText().toString());
+			presenter.updateUser(user, editWhere.getText().toString());
+			break;
+		case R.id.btn_delete:
+			presenter.deleteUser(editWhere.getText().toString());
+			break;
+		case R.id.btn_fetch:
+			presenter.getUsers();
+			break;
 		case R.id.btn_request:
-			requestType();
+			presenter.getContacts(this);
 			break;
 		}
-	}
-
-	@Override
-	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		switch (buttonView.getId()) {
-		case R.id.tbtn_sync:
-			if (isChecked) {
-				priodicSync.startSync(this);
-				// DirtySync.getInstance().startSync(this);
-			} else {
-				priodicSync.stopSync(this);
-				// DirtySync.getInstance().stopSync(this);
-			}
-			break;
-		}
-	}
-
-	@Override
-	public void onPriodicSyncStart() {
-		showToast("Sync Started");
-	}
-
-	@Override
-	public void onPriodicSyncDone() {
-		showToast("Sync Stopped");
-		runOnUiThread(new Runnable() {
-			
-			@Override
-			public void run() {
-				List<Contact> contacts = contactTable.getList();
-				for(Contact contact : contacts) {
-					Phone phone = phoneTable.getList("id = '"+contact.getId()+"'").get(0);
-					contact.setPhone(phone);
-				}
-				listContacts.setAdapter(new ContactsAdapter(MainActivity.this, contacts));
-				showToast("Total: "+contacts.size());
-			}
-		});
-	}
-
-	private void requestType() {
-		new ResponseRequest().setCallback(new RequestCallback<Response>() {
-
-			@Override
-			public void onResponse(Response response, Exception e) {
-				if (response == null) {
-					showToast(e.getMessage());
-					return;
-				}
-				contactTable.setDebug(true);
-				phoneTable.setDebug(true);
-				contactTable.clearTable();
-				phoneTable.clearTable();
-				List<Contact> contacts = response.getContacts();
-				for (Contact contact : contacts) {
-					contactTable.insert(contact);
-					Phone phone = contact.getPhone();
-					phone.setId(contact.getId());
-					phoneTable.insert(phone);
-				}
-				List<Contact> list = contactTable.getList();
-				for(Contact contact : list) {
-					Phone phone = phoneTable.getList("id = '"+contact.getId()+"'").get(0);
-					contact.setPhone(phone);
-				}
-				listContacts.setAdapter(new ContactsAdapter(MainActivity.this, list));				
-			}
-		}).get(this);
 	}
 	
-	private void showToast(final String message) {
-		runOnUiThread(new Runnable() {
+	@Override
+	public void showDialog() {
+		dialog.show();
+	}
+	
+	@Override
+	public void hideDialog() {
+		dialog.dismiss();
+	}
+	
+	@Override
+	public void setNameError(int resId) {
+		editName.requestFocus();
+		editName.setError(getResources().getString(resId));
+	}
 
-			@Override
-			public void run() {
-				Toast.makeText(getApplicationContext(), message,
-						Toast.LENGTH_SHORT).show();
-			}
-		});
-	}	
+	@Override
+	public void setEmailError(int resId) {
+		editEmail.requestFocus();
+		editEmail.setError(getResources().getString(resId));
+	}
+	
+	@Override
+	public void setWhereError(int resId) {
+		editWhere.requestFocus();
+		editWhere.setError(getResources().getString(resId));
+	}
+
+	@Override
+	public void showMessage(String message) {
+		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void setUsers(List<User> users) {
+		list.setAdapter(new UserAdapter(this, users));
+	}
+	
+	@Override
+	public void setContacts(List<Contact> contacts) {
+		list.setAdapter(new ContactsAdapter(this, contacts));
+	}
+	
+	@Override
+	protected void onDestroy() {
+		LightningHelper.closeHelper();
+		super.onDestroy();
+	}
 }
