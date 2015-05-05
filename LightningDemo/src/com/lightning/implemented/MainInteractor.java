@@ -1,4 +1,4 @@
-package com.lightning.implement;
+package com.lightning.implemented;
 
 import java.util.List;
 
@@ -8,7 +8,8 @@ import android.util.Patterns;
 
 import com.lightning.demo.R;
 import com.lightning.engine.CallBack;
-import com.lightning.finisher.OnMainFinishedListener;
+import com.lightning.engine.NoInternetException;
+import com.lightning.interacted.OnMainInteractedListener;
 import com.lightning.model.Contact;
 import com.lightning.model.Phone;
 import com.lightning.model.Response;
@@ -25,49 +26,60 @@ public class MainInteractor implements com.lightning.interactor.MainInteractor {
 		userTable = new LightningTable<User>(User.class);
 		contactTable = new LightningTable<Contact>(Contact.class);
 		phoneTable = new LightningTable<Phone>(Phone.class);
+		userTable.setDebug(true);
+		contactTable.setDebug(true);
+		phoneTable.setDebug(true);
 	}
 
 	@Override
-	public void insert(User user, OnMainFinishedListener listener) {
-		checkUser(user, listener);
+	public void insert(User user, OnMainInteractedListener listener) {
+		if(checkUser(user, listener))
+			return;
 		userTable.insert(user);
+		listener.clearFields();
 		listener.showMessage("User inserted");
 	}
 
 	@Override
-	public void update(User user, String where, OnMainFinishedListener listener) {
-		checkUser(user, listener);
+	public void update(User user, String where, OnMainInteractedListener listener) {
 		if(TextUtils.isEmpty(where)) {
 			listener.onWhereError(R.string.enter_where);
+			getUsers(listener);
 			return;
 		}
 		userTable.update(user, where);
+		listener.clearFields();
 		listener.showMessage("User updated");
 	}
 
 	@Override
-	public void delete(String where, OnMainFinishedListener listener) {
+	public void delete(String where, OnMainInteractedListener listener) {
 		if(TextUtils.isEmpty(where)) {
 			listener.onWhereError(R.string.enter_where);
+			getUsers(listener);
 			return;
 		}
 		userTable.delete(where);
+		listener.clearFields();
 		listener.showMessage("User deleted");
 	}
 
 	@Override
-	public void getUsers(OnMainFinishedListener listener) {
+	public void getUsers(OnMainInteractedListener listener) {
 		listener.onUsersFetched(userTable.getList());
 	}
 	
 	@Override
-	public void getContacts(Activity activity, final OnMainFinishedListener listener) {
+	public void getContacts(Activity activity, final OnMainInteractedListener listener) {
 		new ResponseRequest(activity).setType(ResponseRequest.GET).setCallback(
 				new CallBack<Response>() {
 
 					@Override
 					public void onResponse(Response result, Exception e) {
 						if (result == null) {
+							listener.hideDialog();
+							if(e instanceof NoInternetException)
+								listener.showMessage("No Internet Connection");
 							return;
 						}
 						contactTable.clearTable();
@@ -81,8 +93,7 @@ public class MainInteractor implements com.lightning.interactor.MainInteractor {
 						}
 						List<Contact> list = contactTable.getList();
 						for (Contact contact : list) {
-							Phone phone = phoneTable.getList(
-									"id = '" + contact.getId() + "'").get(0);
+							Phone phone = phoneTable.getList("id = '" + contact.getId() + "'").get(0);
 							contact.setPhone(phone);
 						}
 						listener.onContactsFetched(list);
@@ -90,18 +101,24 @@ public class MainInteractor implements com.lightning.interactor.MainInteractor {
 				}).hit(null);
 	}
 	
-	private void checkUser(User user, OnMainFinishedListener listener) {
+	private boolean checkUser(User user, OnMainInteractedListener listener) {
 		if(TextUtils.isEmpty(user.getName())) {
 			listener.onNameError(R.string.enter_name);
-			return;
+			return true;
 		}
 		if(TextUtils.isEmpty(user.getEmail())) {
 			listener.onEmailError(R.string.enter_email);
-			return;
+			return true;
 		}
 		if(!Patterns.EMAIL_ADDRESS.matcher(user.getEmail()).matches()) {
 			listener.onEmailError(R.string.valid_email);
-			return;
-		}		
+			return true;
+		}
+		if(userTable.exists("name = '" + user.getName() + "' AND email = '" + user.getEmail() + "'")) {
+			listener.clearFields();
+			listener.showMessage("User already exists");
+			return true;
+		}
+		return false;
 	}
 }

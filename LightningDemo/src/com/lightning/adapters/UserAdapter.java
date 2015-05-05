@@ -1,4 +1,4 @@
-package com.lightning.adapter;
+package com.lightning.adapters;
 
 import java.util.List;
 
@@ -43,18 +43,18 @@ public class UserAdapter extends BaseAdapter {
 		if(convertView == null) {
 			convertView = inflater.inflate(R.layout.list_contact, null);
 			holder = new ViewHolder();
-			holder.txtName = (TextView)convertView.findViewById(R.id.txt_name);
-			holder.txtEmail = (TextView)convertView.findViewById(R.id.txt_email);
-			holder.txtPhone = (TextView)convertView.findViewById(R.id.txt_phone);
+			holder.txtName = (TextView) convertView.findViewById(R.id.txt_name);
+			holder.txtEmail = (TextView) convertView.findViewById(R.id.txt_email);
+			holder.txtPhone = (TextView) convertView.findViewById(R.id.txt_phone);
 			convertView.setTag(holder);
 		} else {
 			holder = (ViewHolder) convertView.getTag();
 		}
 
 		User user = users.get(position);
-		holder.txtName.setText(user.getName());
-		holder.txtEmail.setText(user.getEmail());
-		holder.txtPhone.setVisibility(View.GONE);
+		holder.txtName.setText("Name: " + user.getName());
+		holder.txtEmail.setText("Email: " + user.getEmail());
+		holder.txtPhone.setText("UserId: " + user.getUserId());
 		return convertView;
 	}
 

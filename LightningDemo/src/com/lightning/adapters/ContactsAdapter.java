@@ -1,4 +1,4 @@
-package com.lightning.adapter;
+package com.lightning.adapters;
 
 import java.util.List;
 
@@ -54,9 +54,9 @@ public class ContactsAdapter extends BaseAdapter {
 
 		Contact contact = contacts.get(position);
 		
-		holder.txtName.setText(contact.getName());
-		holder.txtEmail.setText(contact.getEmail());
-		holder.txtPhone.setText(contact.getPhone().getMobile());
+		holder.txtName.setText("Name: " + contact.getName());
+		holder.txtEmail.setText("Email: " + contact.getEmail());
+		holder.txtPhone.setText("Phone: " + contact.getPhone().getMobile());
 		return convertView;
 	}
 

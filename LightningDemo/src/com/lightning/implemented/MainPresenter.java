@@ -1,22 +1,22 @@
-package com.lightning.implement;
+package com.lightning.implemented;
 
 import java.util.List;
 
 import android.app.Activity;
 
-import com.lightning.finisher.OnMainFinishedListener;
+import com.lightning.interacted.OnMainInteractedListener;
 import com.lightning.interactor.MainInteractor;
 import com.lightning.model.Contact;
 import com.lightning.model.User;
-import com.lightning.view.MainView;
+import com.lightning.views.MainView;
 
-public class MainPresenter implements com.lightning.presenter.MainPresenter, OnMainFinishedListener {
+public class MainPresenter implements com.lightning.presenter.MainPresenter, OnMainInteractedListener {
 	private MainView view;
 	private MainInteractor interactor;
 	
 	public MainPresenter(MainView view) {
 		this.view = view;
-		interactor = new com.lightning.implement.MainInteractor();
+		interactor = new com.lightning.implemented.MainInteractor();
 	}
 
 	@Override
@@ -32,6 +32,12 @@ public class MainPresenter implements com.lightning.presenter.MainPresenter, OnM
 	@Override
 	public void deleteUser(String where) {
 		interactor.delete(where, this);
+	}
+	
+	@Override
+	public void getUser(User user) {
+		view.clearErrors();
+		view.setUser(user);
 	}
 	
 	@Override
@@ -59,6 +65,17 @@ public class MainPresenter implements com.lightning.presenter.MainPresenter, OnM
 	@Override
 	public void onWhereError(int resId) {
 		view.setWhereError(resId);
+	}
+	
+	@Override
+	public void clearFields() {
+		view.clearFields();
+		view.clearErrors();
+	}
+	
+	@Override
+	public void hideDialog() {
+		view.hideDialog();
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package com.lightning.view;
+package com.lightning.views;
 
 import java.util.List;
 
@@ -11,6 +11,9 @@ public interface MainView {
 	void setNameError(int resId);
 	void setEmailError(int resId);
 	void setWhereError(int resId);
+	void setUser(User user);
+	void clearFields();
+	void clearErrors();
 	void showMessage(String message);
 	void setUsers(List<User> users);
 	void setContacts(List<Contact> contacts);

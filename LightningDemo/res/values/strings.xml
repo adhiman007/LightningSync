@@ -9,12 +9,13 @@
     <string name="insert">Insert</string>
     <string name="update">Update</string>
     <string name="delete">Delete</string>
-    <string name="get_users">Get Users</string>
-    <string name="get_request">Get Request</string>
+    <string name="get_users">Fetch Local Records</string>
+    <string name="get_request">Fetch Server Records</string>
     <string name="enter_name">Please enter name</string>
     <string name="enter_email">Please enter email</string>
     <string name="valid_email">Please enter valid email</string>
-    <string name="where">Where: name = name / email = email</string>
-    <string name="enter_where">Please enter where clause</string>
+    <string name="where">UserId</string>
+    <string name="enter_where">Please select a user</string>
+    <string name="clear">Clear</string>
 
 </resources>

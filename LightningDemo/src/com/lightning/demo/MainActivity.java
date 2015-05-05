@@ -4,33 +4,34 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.lightning.LightningHelper;
-import com.lightning.adapter.ContactsAdapter;
-import com.lightning.adapter.UserAdapter;
+import com.lightning.adapters.ContactsAdapter;
+import com.lightning.adapters.UserAdapter;
 import com.lightning.db.DatabaseHelper;
 import com.lightning.model.Contact;
-import com.lightning.model.Phone;
 import com.lightning.model.User;
 import com.lightning.presenter.MainPresenter;
-import com.lightning.table.LightningTable;
-import com.lightning.view.MainView;
+import com.lightning.views.MainView;
 
-public class MainActivity extends Activity implements OnClickListener, MainView {
+public class MainActivity extends Activity implements OnClickListener, OnItemClickListener, MainView {
 	private EditText editName;
 	private EditText editEmail;
 	private EditText editWhere;
 	private ListView list;
-	private LightningTable<Contact> contactTable;
-	private LightningTable<Phone> phoneTable;
 	private MainPresenter presenter;
 	private ProgressDialog dialog;
+	private InputMethodManager manager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,20 +48,32 @@ public class MainActivity extends Activity implements OnClickListener, MainView 
 		findViewById(R.id.btn_insert).setOnClickListener(this);
 		findViewById(R.id.btn_update).setOnClickListener(this);
 		findViewById(R.id.btn_delete).setOnClickListener(this);
+		findViewById(R.id.btn_clear).setOnClickListener(this);
 		findViewById(R.id.btn_fetch).setOnClickListener(this);
 		findViewById(R.id.btn_request).setOnClickListener(this);
+		list.setOnItemClickListener(this);
 		
-		contactTable = new LightningTable<Contact>(Contact.class);
-		phoneTable = new LightningTable<Phone>(Phone.class);
-		contactTable.setDebug(true);
-		phoneTable.setDebug(true);
+		manager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		
 		dialog = new ProgressDialog(this);
 		dialog.setMessage("Please Wait...");
-		presenter = new com.lightning.implement.MainPresenter(this);
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		presenter = new com.lightning.implemented.MainPresenter(this);
+	}
+	
+	@Override
+	protected void onPause() {
+		presenter = null;
+		super.onPause();
 	}
 
 	@Override
 	public void onClick(View v) {
+		manager.hideSoftInputFromWindow(v.getWindowToken(), 0);
 		User user = new User();
 		switch (v.getId()) {
 		case R.id.btn_insert:
@@ -76,6 +89,9 @@ public class MainActivity extends Activity implements OnClickListener, MainView 
 		case R.id.btn_delete:
 			presenter.deleteUser(editWhere.getText().toString());
 			break;
+		case R.id.btn_clear:
+			presenter.clearFields();
+			break;
 		case R.id.btn_fetch:
 			presenter.getUsers();
 			break;
@@ -86,6 +102,11 @@ public class MainActivity extends Activity implements OnClickListener, MainView 
 	}
 	
 	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+		presenter.getUser((User) ((list.getAdapter() instanceof UserAdapter) ? ((UserAdapter)list.getAdapter()).getItem(arg2) : null));
+	}
+	
+	@Override
 	public void showDialog() {
 		dialog.show();
 	}
@@ -93,6 +114,15 @@ public class MainActivity extends Activity implements OnClickListener, MainView 
 	@Override
 	public void hideDialog() {
 		dialog.dismiss();
+	}
+	
+	@Override
+	public void setUser(User user) {
+		if(user == null)
+			return;
+		editName.setText(user.getName());
+		editEmail.setText(user.getEmail());
+		editWhere.setText("userId = "+user.getUserId());
 	}
 	
 	@Override
@@ -111,6 +141,20 @@ public class MainActivity extends Activity implements OnClickListener, MainView 
 	public void setWhereError(int resId) {
 		editWhere.requestFocus();
 		editWhere.setError(getResources().getString(resId));
+	}
+	
+	@Override
+	public void clearFields() {
+		editName.setText("");
+		editEmail.setText("");
+		editWhere.setText("");
+	}
+	
+	@Override
+	public void clearErrors() {
+		editName.setError(null);
+		editEmail.setError(null);
+		editWhere.setError(null);		
 	}
 
 	@Override
