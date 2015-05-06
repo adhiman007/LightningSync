@@ -13,8 +13,6 @@ Copy LightningSync and GSON jar into your ``libs`` folder
 In this case we are creating table with name '**user**' (passed in constructor)
 ```sh
 public class User extends LightningModel {
-	private static final long serialVersionUID = 2037155306102606510L;
-
 	@Column(name = "userId", type = "INTEGER", order = 1)
 	private int userId;
 
@@ -61,33 +59,6 @@ determines that we are creating a column **userId** with data type **INTEGER**
 
 The name of the table is passed in the constructor ``super("user");`` so that it can be recognised by ``LightningTable``
 
-#### Creating Table for corresponding Model
-```sh
-public class UserTable extends LightningTable<User> {
-
-	public UserTable() {
-		super(new User());
-	}
-
-	@Override
-	protected SQLiteOpenHelper getDBHelper() {
-		return new DatabaseHelper(getContext());
-	}
-
-	@Override
-	protected User populate(Cursor cursor) {
-		User user = new User();
-		user.setUserId(cursor.getInt(cursor.getColumnIndex("userId")));
-		user.setUserName(cursor.getString(cursor.getColumnIndex("userName")));
-		user.setPassword(cursor.getString(cursor.getColumnIndex("password")));
-		return user;
-	}
-}
-```
-- Inside constructor an instance of the model class must be passed ``super(new User());``
-- Inside ``getDBHelper()`` an instance of DatabaseHeler class must be passed ``DatabaseHelper extends SQLiteOpenHelper``
-- Inside ``populate(Cursor cursor)`` we need to map the cursor values with our model
-
 #### Creating Database Helper
 ```sh
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -122,7 +93,7 @@ LightningHelper.createTable(db, new User());
 ```
 #### Insertion
 ```sh
-UserTable userTable = new UserTable();
+LightningTable<User> userTable = new LightningTable<User>(User.class);
 User user = new User();
 user.setUserId(1);
 user.setUserName("admin");
@@ -131,25 +102,25 @@ userTable.insert(user);
 ```
 #### Updation
 ```sh
-UserTable userTable = new UserTable();
+LightningTable<User> userTable = new LightningTable<User>(User.class);
 User user = new User();
 user.setPassword("12345678");
 userTable.update(user, "userId = 1");
 ```
 #### Deletion
 ```sh
-UserTable userTable = new UserTable();
-userTable.delete("userId = 1", null);
+LightningTable<User> userTable = new LightningTable<User>(User.class);
+userTable.delete("userId = 1");
 ```
 #### Fetching records
 ```sh
-UserTable userTable = new UserTable();
+LightningTable<User> userTable = new LightningTable<User>(User.class);
 List<User> users = userTable.getList();
-List<User> users = userTable.getFilterList("password = '1234'");
+List<User> users = userTable.getList("password = '1234'");
 ```
 #### Clear Table
 ```sh
-UserTable userTable = new UserTable();
+LightningTable<User> userTable = new LightningTable<User>(User.class);
 userTable.clearTable();
 ```
 
@@ -172,20 +143,86 @@ public class Response {
 We have created a Response model class that will return us the list users (base on GSON)
 <br>
 ```sh
-public class ResponseRequest extends LightningGetRequest<Response> {
+public class ResponseRequest extends LightningRequest<Void, Response> {
 
-	public ResponseRequest() {
-		super(Response.class);
+	public ResponseRequest(Activity activity) {
+		super(activity);
 	}
 
 	@Override
-	protected String getServiceUrl() {
+	public String getURL() {
+		return "Enter your service url here";
+	}
+
+	@Override
+	public void onResponse(Response result) {
+		LightningTable<User> userTable = new LightningTable<User>(User.class);
+		List<User> users = result.getUsers();
+		for(User user : users) {
+			userTable.insert(user);
+		}
+	}
+}
+```
+-
+Here we are passing ``Void`` and ``Response`` as our Param and Result params. ``Param`` is used when we need to add parameters to our web service. To do this we need to ``@Override`` ``Object getParams()`` method.
+<br>
+- Inorder to setHeaders ``@Override`` ``public void setHeaders(HttpRequestBase request)`` method.
+
+
+
+- Inside ``onResponse`` we will get the response prepopulate using GSON and is ready for insertion
+<br>
+<br>
+
+To hit the API from your activity or fragment (if you want to handle the response inside ResponseRequest)
+```sh
+new ResponseRequest(getApplicationContext()).setType(ResponseRequest.GET).hit(null);
+```
+
+To hit the API from your activity or fragment (if you want to handle the response inside you same activity or class)
+```sh
+new ResponseRequest(getApplicationContext()).setType(ResponseRequest.GET).setCallback(new CallBack<Response>() {
+
+	@Override
+	public void onResponse(Response result, Exception e) {
+		LightningTable<User> userTable = new LightningTable<User>(User.class);
+        	List<User> users = response.getUsers();
+        	for(User user : users) {
+		        userTable.insert(user);
+	        }
+	}
+}).hit(null);
+```
+#### Post API
+```sh
+public class UserRequest extends LightningRequest<User, Response> {
+
+	public UserRequest(Activity activity) {
+		super(activity);
+	}
+
+	@Override
+	public String getURL() {
 		return "Enter your service url here";
 	}
 	
 	@Override
-	protected void onResponse(Response response) {
-		UserTable userTable = new UserTable();
+	public Object getParams(User param) {
+		JSONObject json = new JSONObject();
+		json.put("userName", param.getUserName());
+		json.put("password", param.getPassword());
+		return json;
+	}
+	
+	@Override
+	public void setHeaders(HttpRequestBase request) {
+		request.addHeader(arg0, arg1);
+	}
+
+	@Override
+	public void onResponse(Response result) {
+		LightningTable<User> userTable = new LightningTable<User>(User.class);
 		List<User> users = response.getUsers();
 		for(User user : users) {
 			userTable.insert(user);
@@ -193,68 +230,18 @@ public class ResponseRequest extends LightningGetRequest<Response> {
 	}
 }
 ```
-- Inside constructor we are passing the class name as we are using GSON internally for parsing ``super(Response.class);`` 
-- Inside ``onResponse`` we will get the response prepopulate using GSON and is ready for insertion
+- Map you params inside ``getParams``
 <br>
 <br>
 
-To hit the API from your activity or fragment (if you want to handle the response inside ResponseRequest)
-```sh
-new ResponseRequest().get(getApplicationContext());
-```
-
-To hit the API from your activity or fragment (if you want to handle the response inside you same activity or class)
-```sh
-new ResponseRequest().setCallback(new RequestCallback<Response>() {
-			
-	@Override
-	public void onResponse(Response response, Exception e) {
-		UserTable userTable = new UserTable();
-        List<User> users = response.getUsers();
-        for(User user : users) {
-	        userTable.insert(user);
-        }
-	}
-}).get(getApplicationContext());
-```
-#### Post API
-```sh
-public class UserRequest extends LightningJSONPostRequest<User> {
-
-	@Override
-	protected String getServiceUrl() {
-		return "Enter your service url here";
-	}
-
-	@Override
-	protected void onResponse(String response) {
-		// Parse your response here
-	}
-
-	@Override
-	protected void populateParams(User model, JSONObject params) {
-		try {
-			params.put("userName", model.getUserName());
-			params.put("password", model.getPassword());
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-	}
-}
-```
-- Map you params inside ``populateParams``
-- Response will be returned in String format that can be parsed accordingly
-<br>
-<br>
-
-Hitting of the API will remain same as of Get API only need to pass the model inside the ``post()``
+Hitting of the API will remain same as earlier
 ```sh
 User user = new User();
 user.setUserName("admin");
 user.setPassword("1234");
 
 // Hit Service if response is handled inside 'UserRequest'
-new UserRequest().post(getApplicationContext(), user);
+new UserRequest(getApplicationContext()).setType(ResponseRequest.POST).hit(user);
 ```
 Here we are fetching the response in the same class where we are hitting the API
 ```sh
@@ -263,13 +250,17 @@ user.setUserName("admin");
 user.setPassword("1234");
 
 // Hit service if response needs to be handled inside Activity or Fragment
-new UserRequest().setCallback(new PostCallback() {
-	
+new UserRequest(getApplicationContext()).setType(ResponseRequest.POST).setCallback(new CallBack<Response>() {
+
 	@Override
-	public void onResponse(String response, Exception e) {
-		// Parse your response here
+	public void onResponse(Response result, Exception e) {
+		LightningTable<User> userTable = new LightningTable<User>(User.class);
+		List<User> users = response.getUsers();
+		for(User user : users) {
+			userTable.insert(user);
+		}
 	}
-}).post(getApplicationContext(), user);
+}).hit(user);
 ```
 ## Init LightningSync
 Create a class that will ``extends Application``
@@ -280,7 +271,7 @@ public class LightningApp extends Application {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		LightningHelper.init(getApplicationContext());
+		LightningHelper.init(getApplicationContext(), new DatabaseHelper(getApplicationContext()));
 	}
 }
 ```
