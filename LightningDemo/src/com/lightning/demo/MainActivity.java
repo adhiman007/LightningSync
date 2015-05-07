@@ -38,7 +38,7 @@ public class MainActivity extends Activity implements OnClickListener, OnItemCli
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		LightningHelper.init(getApplicationContext(), new DatabaseHelper(getApplicationContext()));
+		LightningHelper.init(new DatabaseHelper(getApplicationContext()));
 
 		editName = (EditText)findViewById(R.id.edit_name);
 		editEmail = (EditText)findViewById(R.id.edit_email);

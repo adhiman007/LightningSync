@@ -25,7 +25,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		// TODO Auto-generated method stub
-
+		LightningHelper.dropTable(db, new Contact());
+		LightningHelper.dropTable(db, new Phone());
+		LightningHelper.dropTable(db, new User());
+		onCreate(db);
 	}
 }
