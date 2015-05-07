@@ -271,7 +271,7 @@ public class LightningApp extends Application {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		LightningHelper.init(getApplicationContext(), new DatabaseHelper(getApplicationContext()));
+		LightningHelper.init(new DatabaseHelper(getApplicationContext()));
 	}
 }
 ```
