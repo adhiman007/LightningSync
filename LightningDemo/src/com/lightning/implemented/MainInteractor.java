@@ -71,7 +71,7 @@ public class MainInteractor implements com.lightning.interactor.MainInteractor {
 	
 	@Override
 	public void getContacts(Activity activity, final OnMainInteractedListener listener) {
-		new ResponseRequest(activity).setType(ResponseRequest.GET).setCallback(
+		new ResponseRequest(activity).setType(ResponseRequest.GET).setDebug(true).setCallback(
 				new CallBack<Response>() {
 
 					@Override

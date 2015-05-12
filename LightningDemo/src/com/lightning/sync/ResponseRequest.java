@@ -14,9 +14,10 @@ public class ResponseRequest extends LightningRequest<Void, Response> {
 	public String getURL() {
 		return RequestUrl.URL;
 	}
-
+	
 	@Override
 	public void onResponse(Response result) {
+		// TODO Auto-generated method stub
 		
 	}
 }
